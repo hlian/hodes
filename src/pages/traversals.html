@@ -1,0 +1,272 @@
+
+  <header class="post-header">
+    <p class="post-meta">June 14, 2017</p>
+  </header>
+
+  <article class="post-content">
+    <p>Maybe at this point I should rename Spoke Proof to <em>Lens Apocrypha</em>.</p>
+
+<p>OK so by now you may have seen this:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">{-# LANGUAGE RankNTypes #-}</span>
+<span class="kr">type</span> <span class="kt">Lens</span> <span class="n">big</span> <span class="n">small</span> <span class="o">=</span>
+  <span class="n">forall</span> <span class="n">f</span><span class="o">.</span> <span class="kt">Functor</span> <span class="n">f</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="n">small</span> <span class="o">-&gt;</span> <span class="n">f</span> <span class="n">small</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">big</span> <span class="o">-&gt;</span> <span class="n">f</span> <span class="n">big</span>
+<span class="kr">type</span> <span class="kt">Traversal</span> <span class="n">big</span> <span class="n">small</span> <span class="o">=</span>
+  <span class="n">forall</span> <span class="n">ap</span><span class="o">.</span> <span class="kt">Applicative</span> <span class="n">ap</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="n">small</span> <span class="o">-&gt;</span> <span class="n">ap</span> <span class="n">small</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">big</span> <span class="o">-&gt;</span> <span class="n">ap</span> <span class="n">big</span>
+  
+<span class="c1">-- note that if `optic :: Lens big small`,</span>
+<span class="c1">-- then `optic :: Traversal big small` also</span>
+<span class="c1">-- because `Applicative` inherits from `Lens`</span>
+</code></pre></div></div>
+
+<p>And you may have seen lens tutorials trying to start from <code class="highlighter-rouge">Lens</code> and going up to <code class="highlighter-rouge">Traversal</code>. But here’s a controversial opinion: traversals are a better gateway drug for <code class="highlighter-rouge">lens</code>-style optics than lenses are. Whereas lenses “target” (an overloaded hand-wavey term at best) exactly one part of a bigger data structure, a traversal can target 0, 1, or many – in generality we find simplicity. And whereas the <code class="highlighter-rouge">Lens</code> type comes out of seemingly nowhere, the <code class="highlighter-rouge">Traversal</code> type already exists in <code class="highlighter-rouge">base</code>!</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">traverse</span>                   <span class="o">::</span> <span class="p">(</span><span class="kt">Traversable</span> <span class="n">f</span><span class="p">,</span> <span class="kt">Applicative</span> <span class="n">m</span><span class="p">)</span>
+                           <span class="o">=&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">m</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">f</span> <span class="n">a</span>         <span class="o">-&gt;</span> <span class="n">m</span> <span class="p">(</span><span class="n">f</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">traverse</span><span class="o">.</span><span class="n">traverse</span>          <span class="o">::</span> <span class="p">(</span><span class="kt">Traversable</span> <span class="n">f</span><span class="p">,</span> <span class="kt">Traversable</span> <span class="n">g</span><span class="p">,</span> <span class="kt">Applicative</span> <span class="n">m</span><span class="p">)</span>
+                           <span class="o">=&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">m</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">f</span> <span class="p">(</span><span class="n">g</span> <span class="n">a</span><span class="p">)</span>     <span class="o">-&gt;</span> <span class="n">m</span> <span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">g</span> <span class="n">b</span><span class="p">))</span>
+<span class="n">traverse</span><span class="o">.</span><span class="n">traverse</span><span class="o">.</span><span class="n">traverse</span> <span class="o">::</span> <span class="p">(</span><span class="kt">Traversable</span> <span class="n">f</span><span class="p">,</span> <span class="kt">Traversable</span> <span class="n">g</span><span class="p">,</span> <span class="kt">Traversable</span> <span class="n">h</span><span class="p">,</span> <span class="kt">Applicative</span> <span class="n">m</span><span class="p">)</span>
+                           <span class="o">=&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">m</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">f</span> <span class="p">(</span><span class="n">g</span> <span class="p">(</span><span class="n">h</span> <span class="n">a</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="n">m</span> <span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">g</span> <span class="p">(</span><span class="n">h</span> <span class="n">b</span><span class="p">)))</span>
+</code></pre></div></div>
+
+<p>The above snippet comes from the oft-cided <a href="https://github.com/ekmett/lens/wiki/Derivation">Derivation article</a> of the lens project. Note that <code class="highlighter-rouge">traverse :: Traversable t =&gt; Traversal (t small) small</code>.</p>
+
+<p>Indeed, what keeps the <code class="highlighter-rouge">lens</code> package from adopting Purescript-like profunctor-based optics is that it attempts to maintain “backwards compatibility” with <code class="highlighter-rouge">traverse</code>.</p>
+
+<h2 id="quickly-deriving-traversal-from-traverse">Quickly deriving <code class="highlighter-rouge">Traversal</code> from <code class="highlighter-rouge">traverse</code></h2>
+
+<p>(This is just a re-arrangement of the Derviation article.)</p>
+
+<p>We know that traversals should support setters and we know what <code class="highlighter-rouge">over</code> should look like from every lens tutorial on the internet; this naturally constrains the optic it takes to be <code class="highlighter-rouge">Identity</code>.</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ghci</span><span class="o">&gt;</span> <span class="kr">let</span> <span class="n">over</span> <span class="n">l</span> <span class="n">f</span> <span class="o">=</span> <span class="n">runIdentity</span> <span class="o">.</span> <span class="n">l</span> <span class="p">(</span><span class="kt">Identity</span> <span class="o">.</span> <span class="n">f</span><span class="p">)</span>
+<span class="n">ghci</span><span class="o">&gt;</span> <span class="o">:</span><span class="n">t</span> <span class="n">over</span>
+<span class="n">over</span> <span class="o">::</span> <span class="p">((</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Identity</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="kt">Identity</span> <span class="n">t</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="n">t</span>
+</code></pre></div></div>
+
+<p>There are some laws we need to verify but we will glide past them.</p>
+
+<p>We also know that traversals should be able to “get” 0, 1, ∞ parts of a value. We can start with <code class="highlighter-rouge">foldMapDefault</code></p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">foldMapDefault</span> <span class="o">::</span> <span class="p">(</span><span class="kt">Traversable</span> <span class="n">t</span><span class="p">,</span> <span class="kt">Monoid</span> <span class="n">m</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">m</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">t</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="n">m</span>
+<span class="n">foldMapDefault</span> <span class="n">f</span> <span class="o">=</span> <span class="n">getConst</span> <span class="o">.</span> <span class="n">traverse</span> <span class="p">(</span><span class="kt">Const</span> <span class="o">.</span> <span class="n">f</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>We want to abstract out the <code class="highlighter-rouge">traverse</code> and so we get</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ghci</span><span class="o">&gt;</span> <span class="kr">let</span> <span class="n">foldMapOf</span> <span class="n">l</span> <span class="n">f</span> <span class="o">=</span> <span class="n">getConst</span> <span class="o">.</span> <span class="n">l</span> <span class="p">(</span><span class="kt">Const</span> <span class="o">.</span> <span class="n">f</span><span class="p">)</span>
+<span class="n">ghci</span><span class="o">&gt;</span> <span class="o">:</span><span class="n">t</span> <span class="n">foldMapOf</span>
+<span class="n">foldMapOf</span> <span class="o">::</span> <span class="p">((</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Const</span> <span class="n">r</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="kt">Const</span> <span class="n">r</span> <span class="n">t</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="n">r</span>
+</code></pre></div></div>
+
+<p>So now we have two different concrete types for a traversal:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Identity</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="kt">Identity</span> <span class="n">t</span>
+<span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Const</span> <span class="n">r</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="kt">Const</span> <span class="n">r</span> <span class="n">t</span>
+</code></pre></div></div>
+
+<p>What unifies <code class="highlighter-rouge">Identity</code> and <code class="highlighter-rouge">Const r</code>? Nothing! However, if we attach a <code class="highlighter-rouge">Monoid r</code> constraint</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Identity</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="kt">Identity</span> <span class="n">t</span>
+<span class="kt">Monoid</span> <span class="n">r</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Const</span> <span class="n">r</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="kt">Const</span> <span class="n">r</span> <span class="n">t</span>
+</code></pre></div></div>
+
+<p>all of a sudden we can take advantage of the <code class="highlighter-rouge">Monoid r =&gt; Applicative (Const r)</code> instance that exists in <code class="highlighter-rouge">Control.Applicative</code>. This yields us our standard s-t-a-b traversal:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">type</span> <span class="kt">Traversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+  <span class="n">forall</span> <span class="n">ap</span><span class="o">.</span> <span class="kt">Applicative</span> <span class="n">ap</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">ap</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="n">ap</span> <span class="n">t</span>
+</code></pre></div></div>
+
+<p>There are more laws we will glide past happily.</p>
+
+<h2 id="clones-reification-and-bazaars">Clones, Reification, and <code class="highlighter-rouge">Bazaar</code>s</h2>
+
+<p>Let’s take a sharp left turn. Say I want to write a function that uses a traversal twice: once to write, once to read:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">type</span> <span class="kt">Traversal</span> <span class="n">big</span> <span class="n">small</span> <span class="o">=</span>
+  <span class="n">forall</span> <span class="n">ap</span><span class="o">.</span> <span class="kt">Applicative</span> <span class="n">ap</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="n">small</span> <span class="o">-&gt;</span> <span class="n">ap</span> <span class="n">small</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">big</span> <span class="o">-&gt;</span> <span class="n">ap</span> <span class="n">big</span>
+
+<span class="cd">-- | Traverses a value of type big, accumulating the result in monoid mon</span>
+<span class="n">foldMapOf</span> <span class="o">::</span> <span class="kt">Monoid</span> <span class="n">mon</span> <span class="o">=&gt;</span> <span class="kt">Traversal</span> <span class="n">big</span> <span class="n">small</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">small</span> <span class="o">-&gt;</span> <span class="n">mon</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">big</span> <span class="o">-&gt;</span> <span class="n">mon</span>
+<span class="n">foldMapOf</span> <span class="n">traversal</span> <span class="n">fold</span> <span class="o">=</span>
+  <span class="n">getConst</span> <span class="o">.</span> <span class="n">traversal</span> <span class="p">(</span><span class="kt">Const</span> <span class="o">.</span> <span class="n">fold</span><span class="p">)</span>
+
+<span class="cd">-- | foldMapOf with mappend/mzero inlined</span>
+<span class="n">foldrOf</span> <span class="o">::</span> <span class="kt">Traversal</span> <span class="n">big</span> <span class="n">small</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">small</span> <span class="o">-&gt;</span> <span class="n">r</span> <span class="o">-&gt;</span> <span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">r</span> <span class="o">-&gt;</span> <span class="n">big</span> <span class="o">-&gt;</span> <span class="n">r</span>
+<span class="n">foldrOf</span> <span class="n">traversal</span> <span class="n">fold</span> <span class="n">zero</span> <span class="o">=</span>
+  <span class="nf">\</span><span class="n">big</span> <span class="o">-&gt;</span> <span class="n">appEndo</span> <span class="p">(</span><span class="n">foldMapOf</span> <span class="n">traversal</span> <span class="p">(</span><span class="kt">Endo</span> <span class="o">.</span> <span class="n">fold</span><span class="p">)</span> <span class="n">big</span><span class="p">)</span> <span class="n">zero</span>
+
+<span class="cd">-- | toListOf stuffs all the targets of a traversal into a list</span>
+<span class="n">toListOf</span> <span class="o">::</span> <span class="kt">Traversal</span> <span class="n">big</span> <span class="n">small</span> <span class="o">-&gt;</span> <span class="n">big</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">small</span><span class="p">]</span>
+<span class="n">toListOf</span> <span class="n">traversal</span> <span class="o">=</span> <span class="n">foldrOf</span> <span class="n">traversal</span> <span class="p">(</span><span class="o">:</span><span class="p">)</span> <span class="kt">[]</span>
+
+<span class="n">foo</span> <span class="n">traversal</span> <span class="n">big</span> <span class="n">small</span> <span class="o">=</span>
+  <span class="p">(</span><span class="n">toListOf</span> <span class="n">traversal</span> <span class="n">big</span><span class="p">,</span> <span class="n">set</span> <span class="n">traversal</span> <span class="n">small</span> <span class="n">big</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>This will not typecheck, even though it should!</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>• Couldn't match type ‘ap’ with ‘Identity’
+  ‘ap’ is a rigid type variable bound by
+    a type expected by the context:
+      forall (ap :: * -&gt; *).
+      Applicative ap =&gt;
+      (small -&gt; ap small) -&gt; big -&gt; ap big
+    at /Users/h/m/scratch/src/Clone.hs:37:29
+  Expected type: (small -&gt; ap small) -&gt; big -&gt; ap big
+    Actual type: (small -&gt; Identity small) -&gt; big -&gt; Identity big
+• In the first argument of ‘toListOf’, namely ‘traversal’
+  In the expression: toListOf traversal big
+  In the expression:
+    (set traversal small big, toListOf traversal big) (haskell-hdevtools)
+</code></pre></div></div>
+
+<p>What happens here is that <code class="highlighter-rouge">toListOf</code> and <code class="highlighter-rouge">set</code> are having a tug-of-war over what <code class="highlighter-rouge">ap</code> should be: <code class="highlighter-rouge">toListOf</code> wants the <code class="highlighter-rouge">ap ~ m, Monoid m =&gt; Applicative (Const m)</code> instance and <code class="highlighter-rouge">set</code> wants the <code class="highlighter-rouge">Identity ~ m, Applicative Identity</code> instance. Because Haskell enforces the <a href="https://wiki.haskell.org/Monomorphism_restriction">monomorphism restriction</a>, the type inferencer will be unable to ever correctly infer the type of <code class="highlighter-rouge">ap</code>.</p>
+
+<p>Note that we <em>could</em> remove the restriction but, as the Haskell wiki details, we would run into (1) ambiguous types and (2) possibly terrible runtime performance. Nobody said that living at the bleeding edge of typed functional programming would be easy.</p>
+
+<p>Now, in our example, we can wave the problem away by giving <code class="highlighter-rouge">foo</code> a type-signature. As it <em>is</em> a top-level definition we should be doing so anyway. But this problem can come up in more complicated functions, where the expression that would trigger this type error would be deeply nested. Being awesome library authors, we want to provide a “cloning” function that will <em>fix <code class="highlighter-rouge">ap</code> as generically as possible</em> so that it can later be turned back into a generic traversal.</p>
+
+<p>That is, we want to find some type <code class="highlighter-rouge">ATraversal</code> such that</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">type</span> <span class="kt">ATraversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span> <span class="o">???</span>
+
+<span class="n">clone</span> <span class="o">::</span> <span class="kt">ATraversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="kt">Traversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span>
+<span class="n">clone</span> <span class="o">=</span> <span class="o">???</span>
+
+<span class="n">foo</span> <span class="n">traversal</span> <span class="n">big</span> <span class="n">small</span> <span class="o">=</span>
+  <span class="p">(</span><span class="n">toListOf</span> <span class="p">(</span><span class="n">clone</span> <span class="n">traversal</span><span class="p">)</span> <span class="n">big</span><span class="p">,</span> <span class="n">set</span> <span class="p">(</span><span class="n">clone</span> <span class="n">traversal</span><span class="p">)</span> <span class="n">small</span> <span class="n">big</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><em>and</em> <code class="highlighter-rouge">ATraversal s t a b :: Traversal s t a b</code> unifies. This last note is important because it precludes the simplest solution, which is reification:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kr">newtype</span> <span class="kt">ReifiedTraversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+  <span class="kt">ReifiedTraversal</span> <span class="p">{</span> <span class="kt">Traversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span> <span class="p">}</span> 
+
+<span class="n">clone</span> <span class="o">::</span> <span class="kt">ReifiedTraversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="kt">Traversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span>
+<span class="n">clone</span> <span class="p">(</span><span class="kt">ReifiedTraversal</span> <span class="n">traversal</span><span class="p">)</span> <span class="o">=</span> <span class="n">traversal</span>
+
+<span class="n">foo</span> <span class="n">traversal</span> <span class="n">big</span> <span class="n">small</span> <span class="o">=</span>
+  <span class="p">(</span><span class="n">toListOf</span> <span class="p">(</span><span class="n">clone</span> <span class="o">.</span> <span class="kt">ReifiedTraversal</span> <span class="o">$</span> <span class="n">traversal</span><span class="p">)</span> <span class="n">big</span><span class="p">,</span>
+   <span class="n">set</span> <span class="p">(</span><span class="n">clone</span> <span class="o">.</span> <span class="kt">ReifiedTraversal</span> <span class="o">$</span> <span class="n">traversal</span><span class="p">)</span> <span class="n">small</span> <span class="n">big</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Here we introduce a newtype but it comes at the penalty of forcing users to call into the newtype. This is good … but not <em>great</em>.</p>
+
+<p>Let us now pause in the text so the reader can go out and try to figure out the answer.</p>
+
+<p>Back already? No answer? It’s OK. The answer to this problem is fucking bizarre. It’s <code class="highlighter-rouge">Bazaar</code>:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kr">newtype</span> <span class="kt">Bazaar</span> <span class="n">a</span> <span class="n">b</span> <span class="n">t</span> <span class="o">=</span>
+  <span class="kt">Bazaar</span> <span class="p">{</span> <span class="n">runBazaar</span> <span class="o">::</span> <span class="n">forall</span> <span class="n">ap</span><span class="o">.</span> <span class="kt">Applicative</span> <span class="n">ap</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">ap</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ap</span> <span class="n">t</span> <span class="p">}</span>
+  <span class="kr">deriving</span> <span class="kt">Functor</span>
+
+<span class="kr">type</span> <span class="kt">Traversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+  <span class="n">forall</span> <span class="n">ap</span><span class="o">.</span> <span class="p">(</span><span class="kt">Applicative</span> <span class="n">ap</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="n">ap</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="n">ap</span> <span class="n">t</span>
+
+<span class="cd">-- | Traversal except without the ap floating around</span>
+<span class="kr">type</span> <span class="kt">ATraversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span> <span class="o">=</span>
+  <span class="p">(</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Bazaar</span> <span class="n">a</span> <span class="n">b</span> <span class="n">b</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="kt">Bazaar</span> <span class="n">a</span> <span class="n">b</span> <span class="n">t</span>
+
+<span class="n">clone</span> <span class="o">::</span> <span class="kt">ATraversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span> <span class="o">-&gt;</span> <span class="kt">Traversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">b</span>
+<span class="n">clone</span> <span class="n">atraversal</span> <span class="o">=</span>
+  <span class="nf">\</span><span class="n">a2apb</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="kr">do</span>
+    <span class="kr">let</span> <span class="kt">Bazaar</span> <span class="n">baz</span> <span class="o">=</span> <span class="n">atraversal</span> <span class="p">(</span><span class="nf">\</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Bazaar</span> <span class="p">(</span><span class="nf">\</span><span class="n">a2apb</span> <span class="o">-&gt;</span> <span class="n">a2apb</span> <span class="n">a</span><span class="p">))</span> <span class="n">s</span>
+    <span class="n">baz</span> <span class="n">a2apb</span>
+</code></pre></div></div>
+
+<p>This is pulled straight from <code class="highlighter-rouge">lens</code>, sort of. <code class="highlighter-rouge">lens</code> is made complicated by prisms and indexed optics, which forces it to use its profunctors-with-an-extra-f representation. However, if we just restrict ourselves for the time being to traversals and optics, we can fix any profunctor type variable <code class="highlighter-rouge">p</code> we see to be <code class="highlighter-rouge">p ~ (-&gt;)</code>. As a result, a lot of the <code class="highlighter-rouge">Corepresentable p =&gt; Sellable p (Bazaar p), Profuntor p =&gt; Bizarre p (Bazaar p)</code> instances can be thrown away with their resulting definitions inlined and simplified. Anyway if you somehow got something out of this guide I recommend you go read the source code in <code class="highlighter-rouge">Control.Lens.Internal.Context</code> to see how all this <em>can</em> be (abstrusely) generalized to support all the optics in the <code class="highlighter-rouge">lens</code> packge.</p>
+
+<p>Anyway, if we ignore defining exactly what <code class="highlighter-rouge">Bazaar</code> <em>is</em> we can loosely outline how it works:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">atraversal</code> is a promise that, should it be given a <code class="highlighter-rouge">a -&gt; Bazaar a b b</code>, it will give us back an <code class="highlighter-rouge">f t</code></li>
+  <li>We, puzzled, look around the room for an <code class="highlighter-rouge">a -&gt; Bazaar a b b</code>; we find none</li>
+  <li>Meanwhile, we trying to construct a generic traversal
+n</li>
+  <li>We are given a traversal where <code class="highlighter-rouge">ap ~ Bazaar a b</code> has been fixed [*]</li>
+  <li><code class="highlighter-rouge">Bazaar a b t</code> is exactly <code class="highlighter-rouge">Traversal s t a b</code> except it has already been applied to a value (the <code class="highlighter-rouge">s</code> is gone)</li>
+  <li>We use the traversal to traverse through <code class="highlighter-rouge">s</code> once</li>
+  <li>At each element <code class="highlighter-rouge">a</code> of <code class="highlighter-rouge">s</code> we construct a <code class="highlighter-rouge">Bazaar a b a</code></li>
+  <li>A traversal’s job is to upgrade an <code class="highlighter-rouge">a -&gt; ap b</code> to an <code class="highlighter-rouge">s -&gt; ap t</code></li>
+  <li>So this traveral-and-Bazaar tap dance gets us back an <code class="highlighter-rouge">s -&gt; Bazaar a b t</code>, which when applied to <code class="highlighter-rouge">s</code></li>
+  <li>Gets us an <code class="highlighter-rouge">Bazaar a b t</code>, which when applied to <code class="highlighter-rouge">a2apb :: a -&gt; ap b</code></li>
+  <li>Gets us an <code class="highlighter-rouge">f t</code></li>
+</ul>
+
+<p>More simply: <code class="highlighter-rouge">Bazaar</code> acts like a list of <code class="highlighter-rouge">a</code>. We started out asking ourselves what the <em>most generic</em> <code class="highlighter-rouge">ap</code> we could pick for <code class="highlighter-rouge">Traversal</code> could be (since we <em>had</em> to pick one). So we knew that whatever the answer was that it had to store all the elements <code class="highlighter-rouge">a</code> we found in <code class="highlighter-rouge">s</code> as we traversed it. But rather than storing <code class="highlighter-rouge">a</code> directly (as a list would), we store these thunks <code class="highlighter-rouge">(a -&gt; ap b) -&gt; ap b</code>. Each bazaar we make in <code class="highlighter-rouge">clone</code> is a tiger lying in wait for an <code class="highlighter-rouge">a -&gt; ap b</code> value; as soon as it is given one it pounces by applying the <code class="highlighter-rouge">a</code> it had been storing all along.</p>
+
+<p>It is the machinery of traversals that then kicks in and upgrades this from an <code class="highlighter-rouge">ap b</code> to an <code class="highlighter-rouge">ap t</code>.</p>
+
+<p>I confess that this only makes partial sense to me. It is that teach-yourself-more-and-more-Haskell feeling of understanding something 10% more each time you come back to it, and concentrating on moving forward for the time being rather than being stuck on one thing.</p>
+
+<p>If you want to read more on this derivation, see <a href="https://twanvl.nl/blog/haskell/non-regular1">the blog post by Twan van Laarhoven</a>, in which he presents a non-Church-encoded version of <code class="highlighter-rouge">Bazaar</code> called <code class="highlighter-rouge">FunList</code>. The comments on that blog post prove an equivalence between his type and <code class="highlighter-rouge">Bazaar</code>. I think it is the Church encoding (sometimes called a <a href="http://okmij.org/ftp/tagless-final/index.html">final encoding</a>) of the data type that obfuscates true intuition here.</p>
+
+<p>It might also be helpful to compare these notes against the official documentation for Bazaar:</p>
+
+<blockquote>
+  <ul>
+    <li>This is used to characterize a <code class="highlighter-rouge">Traversal</code>.</li>
+    <li>a.k.a. indexed Cartesian store comonad, indexed Kleene store comonad, or an indexed <code class="highlighter-rouge">FunList</code>.</li>
+    <li>A <code class="highlighter-rouge">Bazaar</code> is like a <code class="highlighter-rouge">Traversal</code> that has already been applied to some structure.</li>
+    <li>Where a <code class="highlighter-rouge">Context a b t</code> holds an <code class="highlighter-rouge">(a, b -&gt; t)</code>, a <code class="highlighter-rouge">Bazaar a b t</code> holds N <code class="highlighter-rouge">a</code>s and a function from N <code class="highlighter-rouge">b</code>s to <code class="highlighter-rouge">t</code>, (where N might be infinite).</li>
+    <li>Mnemonically, a Bazaar holds many stores and you can easily add more.</li>
+    <li>This is a final encoding of Bazaar.</li>
+  </ul>
+</blockquote>
+
+<h2 id="singular"><code class="highlighter-rouge">singular</code></h2>
+
+<p>Because Functor is more general than Applicative, all lenses are traversals. The magic of the <code class="highlighter-rouge">lens</code> library design is that this happens automatically without any additional code, that even though we live in a language without subtyping we can encode this idea with typeclasses, parametricity, and carefully-reasoned optical laws.</p>
+
+<p>However, <code class="highlighter-rouge">lens</code> provides this intriguing and unsafe helper:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">singular</span> <span class="o">::</span> <span class="kt">Traversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Lens</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">a</span>
+<span class="n">singular</span> <span class="o">=</span> <span class="o">???</span>
+
+<span class="c1">-- &gt;&gt;&gt; [1,2,3] ^. singular _head</span>
+<span class="c1">-- 1</span>
+
+<span class="c1">-- &gt;&gt;&gt; [1..10] ^. singular (ix 7)</span>
+<span class="c1">-- 8</span>
+
+<span class="c1">-- &gt;&gt;&gt; [1..10] &amp; singular (ix 7) .~ 100</span>
+<span class="c1">-- [1,2,3,4,5,6,7,100,9,10]</span>
+</code></pre></div></div>
+
+<p>It works like this: if you know that a traversal will target more than zero <code class="highlighter-rouge">a</code> values in <code class="highlighter-rouge">s</code>, you can convert it to a lens. If it targets zero values, you will get back a lens that will <code class="highlighter-rouge">error</code> out into bottom at runtime.</p>
+
+<p>It turns out that implementing this function is simple now that we have armed ourselves with <code class="highlighter-rouge">Bazaar</code>:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">singular</span> <span class="o">::</span> <span class="kt">Traversal</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Lens</span> <span class="n">s</span> <span class="n">t</span> <span class="n">a</span> <span class="n">a</span>
+<span class="n">singular</span> <span class="n">traversal</span> <span class="o">=</span>
+  <span class="nf">\</span><span class="n">a2fa</span> <span class="n">s</span> <span class="o">-&gt;</span> <span class="kr">do</span>
+    <span class="kr">let</span> <span class="n">baz</span> <span class="o">=</span> <span class="n">traversal</span> <span class="p">(</span><span class="nf">\</span><span class="n">a</span> <span class="o">-&gt;</span> <span class="kt">Bazaar</span> <span class="p">(</span><span class="o">$</span> <span class="n">a</span><span class="p">))</span> <span class="n">s</span>
+    <span class="kr">case</span> <span class="n">toListOf</span> <span class="n">traversal</span> <span class="n">s</span> <span class="kr">of</span>
+      <span class="p">(</span><span class="n">a</span><span class="o">:</span><span class="n">as</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">fmap</span> <span class="p">(</span><span class="nf">\</span><span class="n">a'</span> <span class="o">-&gt;</span> <span class="n">smush</span> <span class="n">baz</span> <span class="p">(</span><span class="n">a'</span><span class="o">:</span><span class="n">as</span><span class="p">))</span> <span class="p">(</span><span class="n">a2fa</span> <span class="n">a</span><span class="p">)</span>
+      <span class="kt">[]</span> <span class="o">-&gt;</span> <span class="n">fmap</span> <span class="p">(</span><span class="nf">\</span><span class="kr">_</span> <span class="o">-&gt;</span> <span class="n">smush</span> <span class="n">baz</span> <span class="kt">[]</span><span class="p">)</span> <span class="p">(</span><span class="n">a2fa</span> <span class="p">(</span><span class="ne">error</span> <span class="s">"singularity"</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>Once again we traverse <code class="highlighter-rouge">s</code>, storing each <code class="highlighter-rouge">a</code> inside these bazaar thunks. Each thunk is <code class="highlighter-rouge">Bazaar a b b</code> and the traversal upgrades all these into a <code class="highlighter-rouge">Bazaar a b t</code>. Same as before.</p>
+
+<p>We then traverse <code class="highlighter-rouge">s</code> <em>again</em> (I think the <code class="highlighter-rouge">lens</code> library has figured out how to traverse only once, but I was unable to get it to work? Warrants further investigation. Something about the <code class="highlighter-rouge">getting</code> optic.) and see how many values the traversal targeted.</p>
+
+<p>If there is one or more value, we are able to safely create an <code class="highlighter-rouge">f a</code> value, which we cons with the tail to get <code class="highlighter-rouge">f [a]</code>. Then this function kicks in:</p>
+
+<div class="language-haskell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">unconsWithDefault</span> <span class="o">::</span> <span class="n">a</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">a</span><span class="p">,[</span><span class="n">a</span><span class="p">])</span>
+<span class="n">unconsWithDefault</span> <span class="n">d</span> <span class="kt">[]</span>     <span class="o">=</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="kt">[]</span><span class="p">)</span>
+<span class="n">unconsWithDefault</span> <span class="kr">_</span> <span class="p">(</span><span class="n">x</span><span class="o">:</span><span class="n">xs</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">xs</span><span class="p">)</span>
+
+<span class="cd">-- | A state machine that pops off one b each time it runs</span>
+<span class="n">gobble</span> <span class="o">::</span> <span class="kt">State</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="n">b</span>
+<span class="n">gobble</span> <span class="o">=</span> <span class="n">state</span> <span class="p">(</span><span class="n">unconsWithDefault</span> <span class="p">(</span><span class="ne">error</span> <span class="s">""</span><span class="p">))</span>
+
+<span class="cd">-- | Assuming bazaar was constructed on a list of size N, runs gobble N times</span>
+<span class="n">smush</span> <span class="o">::</span> <span class="kt">Bazaar</span> <span class="n">a</span> <span class="n">b</span> <span class="n">t</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">t</span>
+<span class="n">smush</span> <span class="p">(</span><span class="kt">Bazaar</span> <span class="n">bazaar</span><span class="p">)</span> <span class="n">bs</span> <span class="o">=</span> <span class="n">evalState</span> <span class="p">(</span><span class="n">bazaar</span> <span class="p">(</span><span class="nf">\</span><span class="kr">_</span> <span class="o">-&gt;</span> <span class="n">gobble</span><span class="p">))</span> <span class="n">bs</span>
+</code></pre></div></div>
+
+
+  </article>
+

@@ -4,21 +4,23 @@
   "version": "1.0.0",
   "author": "Kyle Mathews <mathews.kyle@gmail.com>",
   "dependencies": {
-    "@types/react": "^16.7.11",
-    "@types/react-dom": "^16.0.11",
-    "@types/react-helmet": "^5.0.7",
-    "gatsby": "^2.0.53",
-    "gatsby-image": "^2.0.20",
-    "gatsby-plugin-manifest": "^2.0.9",
-    "gatsby-plugin-offline": "^2.0.16",
-    "gatsby-plugin-react-helmet": "^3.0.2",
-    "gatsby-plugin-sharp": "^2.0.12",
-    "gatsby-plugin-typescript": "^2.0.2",
-    "gatsby-source-filesystem": "^2.0.8",
-    "gatsby-transformer-sharp": "^2.1.8",
-    "react": "^16.6.3",
-    "react-dom": "^16.6.3",
-    "react-helmet": "^5.2.0"
+    "@types/react": "16.9.13",
+    "@types/react-dom": "16.9.4",
+    "@types/react-helmet": "5.0.14",
+    "@types/styled-components": "^4.4.0",
+    "gatsby": "2.18.5",
+    "gatsby-plugin-offline": "3.0.25",
+    "gatsby-plugin-react-helmet": "3.1.16",
+    "gatsby-plugin-typescript": "2.1.20",
+    "gatsby-source-filesystem": "2.1.39",
+    "html-loader": "^0.5.5",
+    "jest": "^24.9.0",
+    "npm-check-updates": "^3.2.2",
+    "react": "16.12.0",
+    "react-dom": "16.12.0",
+    "react-helmet": "5.2.1",
+    "styled-components": "^4.4.1",
+    "typescript": "^3.7.2"
   },
   "keywords": [
     "gatsby"
@@ -27,12 +29,12 @@
   "scripts": {
     "build": "gatsby build",
     "develop": "gatsby develop",
-    "start": "npm run develop",
+    "start": "yarn run develop",
     "format": "prettier --write \"src/**/*.js\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --workers=1"
   },
   "devDependencies": {
-    "prettier": "^1.15.2"
+    "prettier": "^1.19.1"
   },
   "repository": {
     "type": "git",

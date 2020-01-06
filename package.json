@@ -6,7 +6,7 @@
   "dependencies": {
     "@types/react": "16.9.17",
     "@types/react-dom": "16.9.4",
-    "@types/react-helmet": "5.0.14",
+    "@types/react-helmet": "5.0.15",
     "@types/styled-components": "^4.4.1",
     "gatsby": "2.18.17",
     "gatsby-plugin-offline": "3.0.30",

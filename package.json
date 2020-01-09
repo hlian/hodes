@@ -12,7 +12,7 @@
     "gatsby-plugin-offline": "3.0.30",
     "gatsby-plugin-react-helmet": "3.1.18",
     "gatsby-plugin-typescript": "2.1.23",
-    "gatsby-source-filesystem": "2.1.43",
+    "gatsby-source-filesystem": "2.1.45",
     "html-loader": "^0.5.5",
     "jest": "^24.9.0",
     "npm-check-updates": "^4.0.1",

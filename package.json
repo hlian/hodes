@@ -9,7 +9,7 @@
     "@types/react-helmet": "5.0.15",
     "@types/styled-components": "^4.4.2",
     "gatsby": "2.19.12",
-    "gatsby-plugin-offline": "3.0.33",
+    "gatsby-plugin-offline": "3.0.34",
     "gatsby-plugin-react-helmet": "3.1.22",
     "gatsby-plugin-typescript": "2.1.27",
     "gatsby-source-filesystem": "2.1.48",

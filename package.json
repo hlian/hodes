@@ -10,7 +10,7 @@
     "@types/styled-components": "^5.1.0",
     "gatsby": "2.23.14",
     "gatsby-plugin-offline": "3.2.16",
-    "gatsby-plugin-react-helmet": "3.3.8",
+    "gatsby-plugin-react-helmet": "3.3.9",
     "gatsby-plugin-typescript": "2.4.12",
     "gatsby-source-filesystem": "2.3.17",
     "html-loader": "^0.5.5",

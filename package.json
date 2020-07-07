@@ -8,7 +8,7 @@
     "@types/react-dom": "16.9.8",
     "@types/react-helmet": "5.0.15",
     "@types/styled-components": "^5.1.1",
-    "gatsby": "2.23.21",
+    "gatsby": "2.23.22",
     "gatsby-plugin-offline": "3.2.16",
     "gatsby-plugin-react-helmet": "3.3.9",
     "gatsby-plugin-typescript": "2.4.13",

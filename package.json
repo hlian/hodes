@@ -20,7 +20,7 @@
     "react-dom": "16.13.1",
     "react-helmet": "6.1.0",
     "styled-components": "^4.4.1",
-    "typescript": "^3.9.6"
+    "typescript": "^3.9.7"
   },
   "keywords": [
     "gatsby"

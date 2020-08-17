@@ -15,7 +15,7 @@
     "gatsby-source-filesystem": "2.3.24",
     "html-loader": "^0.5.5",
     "jest": "^26.4.0",
-    "npm-check-updates": "^7.1.0",
+    "npm-check-updates": "^7.1.1",
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-helmet": "6.1.0",

@@ -14,7 +14,7 @@
     "gatsby-plugin-typescript": "2.4.22",
     "gatsby-source-filesystem": "2.3.35",
     "html-loader": "^0.5.5",
-    "jest": "^26.5.3",
+    "jest": "^26.6.0",
     "npm-check-updates": "^9.1.0",
     "react": "16.14.0",
     "react-dom": "16.14.0",

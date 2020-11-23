@@ -5,7 +5,7 @@
   "author": "Kyle Mathews <mathews.kyle@gmail.com>",
   "dependencies": {
     "@types/react": "17.0.0",
-    "@types/react-dom": "16.9.9",
+    "@types/react-dom": "17.0.0",
     "@types/react-helmet": "6.1.0",
     "@types/styled-components": "^5.1.4",
     "gatsby": "2.27.0",

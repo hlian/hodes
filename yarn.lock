@@ -10050,10 +10050,10 @@ npm-bundled@^1.1.1:
   dependencies:
     npm-normalize-package-bin "^1.0.1"
 
-npm-check-updates@^11.5.3:
-  version "11.5.3"
-  resolved "https://registry.yarnpkg.com/npm-check-updates/-/npm-check-updates-11.5.3.tgz#15b48e9e8e012f5f070024ccff52ed62cd0dc255"
-  integrity sha512-/HCLL3BdTp8X9H7M/LxKkkpPAaLvXeSt5HAW4BLqt+I6Hd68itVYqg4CGhivm/64sQ2CCfRjXxOpXAU2GwxwAA==
+npm-check-updates@^11.5.4:
+  version "11.5.4"
+  resolved "https://registry.yarnpkg.com/npm-check-updates/-/npm-check-updates-11.5.4.tgz#cdb65a1e88809e74ace38b57f9a21de4982c5484"
+  integrity sha512-rErQZR/O95L2ejYFrs37E5QWbo0VEuR74EKNq9z0WlcO/V9p9AtKzeaBqhtfbfO0ABqT19Z9WWZy8XEP1u/nHA==
   dependencies:
     chalk "^4.1.1"
     cint "^8.2.1"
